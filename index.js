@@ -1,6 +1,7 @@
 'use strict';
 
 var hexoUtil = require('hexo-util');
+var fs = require('hexo-fs');
 var imgUrl = hexo.config.imgurl;
 var rImgAttr = /[\:]+/;
 var rImgUrl = /(.png|.jpg|.gif|.bmp){1}/;
@@ -40,3 +41,11 @@ hexo.extend.tag.register('imgurl', function(args){
   return hexoUtil.htmlTag('img', imgAttr);
 
 });
+/**
+ * Delete image
+ */
+if (hexo.config.rmimage){
+  hexo.extend.filter.register('after_generate', function(){
+    fs.emptyDir('public/post/');
+  });
+}
