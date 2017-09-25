@@ -1,22 +1,33 @@
 'use strict';
-
+console.log(hexo.config.imgurls)
 var hexoUtil = require('hexo-util');
-var imgUrl = hexo.config.imgurl;
+var cdns = hexo.config.cdns || [];
 var rImgAttr = /[\:]+/;
-var rImgUrl = /(.png|.jpg|.gif|.bmp){1}/;
+var rImgUrl = /(.png|.jpg|.gif|.bmp|.webp){1}/;
+var rScriptUrl = /(.js){1}/;
+var rStyleUrl = /(.css){1}/;
+var point = 0;
+
 
 /**
  * Imgurl tag
- * 
+ *
  * Syntax:
  * ```
  * {% imgurl imagePath [class1,class2,classN] imgAttr %}
  * ```
  */
 
-hexo.extend.tag.register('imgurl', function(args){
-  
-  var imgAttr = {};
+hexo.extend.tag.register('cdnres', function(args){
+  point = point < cdns.length ? point : 0
+
+  console.log(point, 'CDN')
+  var attrs = {};
+  var cdnHost = cdns[point]
+  var tag
+  var tagType
+
+  point += 1
 
   for (var i = 0; i < args.length; i++) {
     var item = args[i];
@@ -29,14 +40,35 @@ hexo.extend.tag.register('imgurl', function(args){
 
       var parseAttr = item.split(':');
 
-      imgAttr[parseAttr[0]] = parseAttr[1];
-      } else if (rImgUrl.test(item)) {
-        imgAttr.src = "//" + imgUrl + "/" + item;
-      } else {
-        imgAttr.class = item.split(',').join(' ');
-      }
+      attrs[parseAttr[0]] = parseAttr[1];
+    } else if (rImgUrl.test(item)) {
+      tagType = 'IMG'
+      attrs.src = "//" + cdnHost + "/" + item;
+    } else if (rScriptUrl.test(item)) {
+      tagType = 'SCRIPT'
+      attrs.src = "//" + cdnHost + "/" + item;
+    } else if (rStyleUrl.test(item)) {
+      tagType = 'STYLE'
+      attrs.rel = 'stylesheet'
+      attrs.href = "//" + cdnHost + "/" + item;
+    } else {
+      attrs.class = item.split(',').join(' ');
+    }
   }
 
-  return hexoUtil.htmlTag('img', imgAttr);
+  switch (tagType) {
+    case 'IMG':
+      tag = hexoUtil.htmlTag('img', attrs);
+      break;
 
+    case 'SCRIPT':
+      tag = hexoUtil.htmlTag('script', attrs);
+      break;
+
+    case 'STYLE':
+      tag = hexoUtil.htmlTag('link', attrs);
+      break;
+  }
+
+  return tag;
 });
