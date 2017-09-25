@@ -21,7 +21,6 @@ var point = 0;
 hexo.extend.tag.register('cdnres', function(args){
   point = point < cdns.length ? point : 0
 
-  console.log(point, 'CDN')
   var attrs = {};
   var cdnHost = cdns[point]
   var tag
